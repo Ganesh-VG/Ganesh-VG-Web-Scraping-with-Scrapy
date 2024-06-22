@@ -1,55 +1,92 @@
-# Web Scraping With Scrapy
+# News Scraper
 
-### Overview
+## Project Description
 
-This project aims to extract information from a news website using web scraping techniques with Python and Scrapy. The extracted data is then stored in a JSON format for further analysis or processing.
+News Scraper is a web scraping project built using Scrapy to extract articles from various news websites. The extracted data includes article URLs, titles, publication dates, authors, and content. The data is saved in JSON files categorized by the website from which they were scraped.
 
-### Features
+## Features
 
-- **Web Scraping**: Utilizes Scrapy, a powerful web crawling and scraping framework in Python, to extract structured data from the news website.
-- **Data Extraction**: Extracts various pieces of information such as article titles, authors, publication dates, and article content from the website.
-- **JSON Output**: Stores the extracted data into a JSON file format, making it easy to parse and analyze the information later.
+- Scrapes multiple news websites sequentially.
+- Extracts and saves articles in JSON format.
+- Organizes scraped data by website.
+- Configurable through a text file containing URLs.
+
+## Setup Instructions
+
+### Prerequisites
+
+- Python 3.x
+- Scrapy
 
 ### Installation
 
-1. Clone the repository to your local machine:
+1. Clone the repository:
 
-   ```bash
-   git clone https://github.com/Ganesh-VG/Web-Scraping-with-Scrapy.git
-   ```
+    ```sh
+    git clone https://github.com/Ganesh-VG/Web-Scraping-with-Scrapy
+    cd Web-Scraping-with-Scrapy
+    ```
 
-2. Navigate to the project directory:
+2. Create and activate a virtual environment (optional but recommended):
 
-   ```bash
-   cd Web-Scraping-with-Scrapy
-   ```
+    ```sh
+    python -m venv venv
+    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+    ```
 
-3. Install the required dependencies using pip:
+3. Install the required packages:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+    ```sh
+    pip install -r requirements.txt
+    ```
 
-### Usage
+### Configuration
 
-1. Run the Scrapy spider to start scraping the news website:
+- **config.txt**: Add the list of URLs to be scraped in this file, one URL per line.
+- **settings.py**: Adjust the Scrapy settings as needed.
 
-   ```bash
-   scrapy crawl news_scraper
-   ```
+### Directory Structure
 
-2. Or you can just run the main.py file present in the repository
+Web-Scraping-with-Scrapy/
+├── config.txt
+├── main.py
+├── news_spider.py
+├── pipelines.py
+├── requirements.txt
+└── JSON_files/
 
-3. Once the scraping is complete, the extracted data will be stored in a file named `livemint_articles.json` in the project directory.
+## Usage
 
-### Contributing
+1. Add URLs to `config.txt`.
 
-Contributions are welcome! If you encounter any bugs or have suggestions for improvements, please feel free to open an issue or submit a pull request.
+2. Run the scraper:
 
-### License
+    ```sh
+    python main.py
+    ```
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+3. The scraped data will be saved in JSON files in the `JSON_files` directory, categorized by the website name.
 
----
+## Example
 
-Feel free to customize this explanation to fit the specifics of your project!
+An example of a URL in `config.txt`:
+
+https://www.livemint.com/
+https://economictimes.indiatimes.com/
+
+After running the scraper, JSON files will be created for each website:
+
+JSON_files/
+├── livemint_articles.json
+├── economictimes_articles.json
+
+## Contributing
+
+Contributions are welcome! Please follow these steps to contribute:
+
+1. Fork the repository.
+2. Create a new branch: `git checkout -b my-feature-branch`.
+3. Make your changes and commit them: `git commit -m 'Add some feature'`.
+4. Push to the branch: `git push origin my-feature-branch`.
+5. Submit a pull request.
+

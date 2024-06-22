@@ -1,9 +1,7 @@
 import scrapy
 import re
 from scrapy.http import Request
-from scrapy import signals
 from News_scraper.items import NewsScraperItem
-import time
 from config import WEBSITE_URL
 
 
@@ -15,20 +13,14 @@ class NewsSpider(scrapy.Spider):
     name = 'getnews'  # Name of spider
     news_url = []
 
-    def start_requests(self):
-        """Start requests function to manually select URL from config.py"""
-        url = WEBSITE_URL
-        yield Request(url, headers={'User-Agent': self.settings.get('USER_AGENT')})
-
     # def start_requests(self):
-    #     with open('config.txt', 'r') as file:
-    #         self.urls = [line.strip() for line in file.readlines()]
-    #     for url in self.urls:
-    #         yield Request(url, callback=self.parse,headers={'User-Agent': self.settings.get('USER_AGENT')})
-    #         if scrapy.signals.engine_stopped():
-    #             continue
-    #         else:
-    #             time.sleep(10)
+    #     """Start requests function to manually select URL from config.py"""
+    #     url = WEBSITE_URL
+    #     yield Request(url, headers={'User-Agent': self.settings.get('USER_AGENT')})
+
+    def __init__(self, url=None, *args, **kwargs):
+        super(NewsSpider, self).__init__(*args, **kwargs)
+        self.start_urls = [url] if url else []
 
 
     def parse(self, response):
