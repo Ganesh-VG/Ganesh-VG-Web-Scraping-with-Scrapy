@@ -1,18 +1,35 @@
 import scrapy
 import re
 from scrapy.http import Request
+from scrapy import signals
 from News_scraper.items import NewsScraperItem
+import time
 from config import WEBSITE_URL
 
 
 class NewsSpider(scrapy.Spider):
-    name = 'getnews'
+    """"Spider class that scrape the News website
+    to extract the required data from the news articles
+    and save it into their respective JSON files"""
+
+    name = 'getnews'  # Name of spider
     news_url = []
-    base_url = None
 
     def start_requests(self):
+        """Start requests function to manually select URL from config.py"""
         url = WEBSITE_URL
         yield Request(url, headers={'User-Agent': self.settings.get('USER_AGENT')})
+
+    # def start_requests(self):
+    #     with open('config.txt', 'r') as file:
+    #         self.urls = [line.strip() for line in file.readlines()]
+    #     for url in self.urls:
+    #         yield Request(url, callback=self.parse,headers={'User-Agent': self.settings.get('USER_AGENT')})
+    #         if scrapy.signals.engine_stopped():
+    #             continue
+    #         else:
+    #             time.sleep(10)
+
 
     def parse(self, response):
         self.logger.info(f"Successfully crawled: {response.url}")
@@ -31,7 +48,7 @@ class NewsSpider(scrapy.Spider):
         for filter_categ in filtered_category_url:
 
             if self.base_url not in filter_categ:
-                filter_categ = self.base_url + filter_categ
+                filter_categ = self.base_url + filter_categ.strip().lstrip("/")
 
             yield response.follow(filter_categ, self.parse_category)
 
@@ -58,8 +75,8 @@ class NewsSpider(scrapy.Spider):
         for filtered_news in filtered_news_url:
 
             # This is to ensure all URL's are in right format
-            if filtered_news.startswith("/"):
-                filtered_news = self.base_url + filtered_news
+            if self.base_url not in filtered_news:
+                filtered_news = self.base_url + filtered_news.strip().lstrip("/")
 
             # Pass on each categorical URL to parse the articles
             yield response.follow(filtered_news, self.parse_article)
@@ -67,22 +84,81 @@ class NewsSpider(scrapy.Spider):
     def parse_article(self, response):
 
         date_pattern = re.compile(
-            r'\d{2} \b[A-Za-z]{3} \d{4}\b|\b[A-Za-z]{3} \d{2}, \d{4}\b|\b[A-Za-z]{3} \d{2} \d{4}\b|\d{2}-\d{2}-\d{4}|'
-            r'\b(January|February|March|April|May|June|July|August|September|October|November|December) \d{2}, \d{4}\b|'
-            r'\b(January|February|March|April|May|June|July|August|September|October|November|December) \d{2} \d{4}\b|'
-            r'\d{2} \b(January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b')
-        match_date = (response.xpath('//time/@datetime').get() or date_pattern.search(response.text).group(0)
-                      or 'No date found')
+            r'\b(0?[1-9]|[12][0-9]|3[01])[-/.](Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|JAN(?:UARY)?|FEB(?:RUARY)?|MAR(?:CH)?|APR(?:IL)?|MAY|JUN(?:E)?|JUL(?:Y)?|AUG(?:UST)?|SEP(?:TEMBER)?|OCT(?:OBER)?|NOV(?:EMBER)?|DEC(?:EMBER)?)[-/.](\d{4})\b|'
+            r'\b(0?[1-9]|[12][0-9]|3[01])\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|JAN(?:UARY)?|FEB(?:RUARY)?|MAR(?:CH)?|APR(?:IL)?|MAY|JUN(?:E)?|JUL(?:Y)?|AUG(?:UST)?|SEP(?:TEMBER)?|OCT(?:OBER)?|NOV(?:EMBER)?|DEC(?:EMBER)?)\s+(\d{4})\b|'
+            r'\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|JAN(?:UARY)?|FEB(?:RUARY)?|MAR(?:CH)?|APR(?:IL)?|MAY|JUN(?:E)?|JUL(?:Y)?|AUG(?:UST)?|SEP(?:TEMBER)?|OCT(?:OBER)?|NOV(?:EMBER)?|DEC(?:EMBER)?)\s+(0?[1-9]|[12][0-9]|3[01]),\s+(\d{4})\b|'
+            r'\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|JAN(?:UARY)?|FEB(?:RUARY)?|MAR(?:CH)?|APR(?:IL)?|MAY|JUN(?:E)?|JUL(?:Y)?|AUG(?:UST)?|SEP(?:TEMBER)?|OCT(?:OBER)?|NOV(?:EMBER)?|DEC(?:EMBER)?)\s+(0?[1-9]|[12][0-9]|3[01])\s+(\d{4})\b|'
+            r'\b(0[1-9]|1[0-2])[-/](0[1-9]|[12]\d|3[01])[-/](19\d\d|20\d\d)\b|'
+            r'\b(0[1-9]|[12]\d|3[01])[-/](0[1-9]|1[0-2])[-/](19\d\d|20\d\d)\b|'
+            r'\b(19\d\d|20\d\d)[-/](0[1-9]|1[0-2])[-/](0[1-9]|[12]\d|3[01])\b|'
+            r'\b(0[1-9]|1[0-2])[-/](0[1-9]|[12]\d|3[01])[-/](\d\d)\b|'
+            r'\b(19\d\d|20\d\d)-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b'
+        )
+        match_date = (response.xpath('//time/@datetime').get() or date_pattern.search(response.text).group(0))
 
-        title_match = response.xpath("//title/text()").get()
+        title_match = response.xpath("//title/text()").get() or response.xpath("//h1/text()").get()
 
         if title_match and match_date:
             item = NewsScraperItem()
 
             item['article_url'] = response.url
 
-            item['title'] = title_match
+            item['title'] = title_match.strip()
 
             item['published_date'] = match_date
+
+            # Define author link
+            author_link = next(
+                (
+                    # If the URL is not in right format this will correct it.
+                    (
+                        self.base_url + text.strip().lstrip("/")
+                        if self.base_url not in text.strip() else text.strip()
+                    )
+                    # This is a list comprehension to extract the author URL
+                    for text in response.css('a::attr(href)').getall()
+                    if re.compile(
+                    rf'^({self.base_url}|/)((authors|author|etreporter)|[a-zA-Z0-9\-/]+/(authors|author|etreporter))/[a-zA-Z0-9\-/]+').match(
+                    text.strip())
+                ),
+                # If the first code in next function gives null as output than next code will run
+                # This is the html parser to extract author name using css selectors
+                re.sub(r'\s+', ' ',
+                       response.xpath('//*[contains(@class, "author")]/text()').get() or
+                       response.xpath('//*[contains(@class, "premiumauthor")]/text()').get() or
+                       response.xpath('//*[contains(@class, "article_author")]/text()').get() or
+                       response.xpath('//a[contains(@class, "Author-authorName")]/@href').get() or
+                       response.xpath('//*[contains(@class, "author-name")]/text()').get() or
+                       response.xpath('//*[contains(@class, "brand-detial-main")]//span/text()').get() or
+                       response.xpath('//*[contains(@class, "publisher")]/text()').get() or
+                       response.xpath('//span[@class="ag"]/text()').get() or "").strip() or "Not Available"
+            )
+
+            # Extract author name
+            if "https://" in author_link or "Https://":
+
+                # If 'author_link' is a URL than extract the author name from it using following code
+                author_name = (author_link.strip("/").split("/")[-1].replace("-", " "))
+
+                # If 'author_link' is a URL than just save it as author url
+                author_url = author_link
+
+            else:
+                # If not than it will be a name extracted using css selector so store it in name.
+                author_name = author_link
+
+                # URL is not present for author in the website
+                author_url = "Not Available"
+
+            # store author name
+            item['author_name'] = author_name.title()
+
+            # store author URL
+            item['author_url'] = author_url
+
+            # Clean and concatenate article content and store it
+            paragraphs = response.xpath(
+                "//p//text() | //article//div//text() | //article//div//h2//text() | //article//div//h3//text() | //article//div//h4//text() | //article//div//h5//text() | //article//div//h6//text() | //article//h2//text() | //article//h3//text() | //article//h4//text() | //article//h5//text() | //article//h6//text()").getall()
+            item['article_content'] = re.sub(r'\s+', ' ', ' '.join(paragraphs)).strip()
 
             yield item

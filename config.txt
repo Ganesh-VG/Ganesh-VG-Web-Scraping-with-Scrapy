@@ -1,12 +1,13 @@
 https://www.livemint.com/
 https://economictimes.indiatimes.com/
-https://www.cnbc.com/
 https://www.financialexpress.com/
 https://www.businesstoday.in/
+https://www.thehindu.com/
+https://www.moneycontrol.com/
 https://www.edexlive.com/
 https://www.rediff.com/
 https://www.mediainfoline.com/
-https://thehauterfly.com/
+https://www.channelnewsasia.com/
 https://www.carandbike.com/
 https://technuter.com/
 https://gizmodo.com/
@@ -17,4 +18,5 @@ https://thecsrjournal.in/
 https://www.herzindagi.com/
 https://www.jagranjosh.com/
 https://www.indiatoday.in/
-https://www.thehindu.com/
+https://www.straitstimes.com/
+https://www.todayonline.com/
