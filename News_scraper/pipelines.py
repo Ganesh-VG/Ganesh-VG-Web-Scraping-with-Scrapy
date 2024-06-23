@@ -25,7 +25,7 @@ class NewsScraperPipeline:
     def open_website_file(self, website):
         if website not in self.files:
             if website:
-                self.files[website] = open(f'JSON_files1/{website}_articles.json', 'w', encoding='utf-8')
+                self.files[website] = open(f'JSON_files/{website}_articles.json', 'w', encoding='utf-8')
                 self.files[website].write('[\n')
 
     def process_item(self, item, spider):
@@ -34,6 +34,3 @@ class NewsScraperPipeline:
         line = json.dumps(dict(item), ensure_ascii=False, indent=4)
         self.files[website].write(line + ',\n')
         return item
-
-
-

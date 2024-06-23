@@ -2,7 +2,7 @@ import scrapy
 import re
 from scrapy.http import Request
 from News_scraper.items import NewsScraperItem
-from config import WEBSITE_URL
+# from config import WEBSITE_URL
 
 
 class NewsSpider(scrapy.Spider):
@@ -13,14 +13,15 @@ class NewsSpider(scrapy.Spider):
     name = 'getnews'  # Name of spider
     news_url = []
 
-    # def start_requests(self):
-    #     """Start requests function to manually select URL from config.py"""
-    #     url = WEBSITE_URL
-    #     yield Request(url, headers={'User-Agent': self.settings.get('USER_AGENT')})
-
     def __init__(self, url=None, *args, **kwargs):
         super(NewsSpider, self).__init__(*args, **kwargs)
-        self.start_urls = [url] if url else []
+        self.url = url.strip()
+
+    def start_requests(self):
+        """Start requests function to manually select URL from config.py"""
+        # url_first = WEBSITE_URL
+        url_first = self.url
+        yield Request(url_first, callback=self.parse, headers={'User-Agent': self.settings.get('USER_AGENT')})
 
 
     def parse(self, response):
