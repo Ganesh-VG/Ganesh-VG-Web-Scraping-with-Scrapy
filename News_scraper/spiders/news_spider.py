@@ -2,7 +2,6 @@ import scrapy
 import re
 from scrapy.http import Request
 from News_scraper.items import NewsScraperItem
-# from config import WEBSITE_URL
 
 
 class NewsSpider(scrapy.Spider):
@@ -11,18 +10,16 @@ class NewsSpider(scrapy.Spider):
     and save it into their respective JSON files"""
 
     name = 'getnews'  # Name of spider
-    news_url = []
 
     def __init__(self, url=None, *args, **kwargs):
         super(NewsSpider, self).__init__(*args, **kwargs)
         self.url = url.strip()
+        self.news_url = []
 
     def start_requests(self):
         """Start requests function to manually select URL from config.py"""
-        # url_first = WEBSITE_URL
         url_first = self.url
         yield Request(url_first, callback=self.parse, headers={'User-Agent': self.settings.get('USER_AGENT')})
-
 
     def parse(self, response):
         self.logger.info(f"Successfully crawled: {response.url}")
@@ -60,7 +57,12 @@ class NewsSpider(scrapy.Spider):
             rf'^({self.base_url}|/)[A-Za-z0-9\-_\₹/\!\@\#\$\%\^\&\*\(\)\+\=\{{}}\[\]\|\\\:\;\"\'\<\>\,\.\?\/\~\`]+([0-9]{{7}}/|-\d{{2}}|.html|.htm|[0-9]{{7}}|[a-zA-Z0-9\-]|[a-zA-Z0-9\-]/)$')
 
         # Filter news_url list using the pattern
-        filtered_news_url = [n_url for n_url in local_news_url if pattern_n.match(n_url)]
+        filtered_news_url_re = [n_url for n_url in local_news_url if pattern_n.match(n_url)]
+
+        elements = ['/feedback', '/authors', '/author', '/userfeedback', '/video', '/rssfeed', '/videos', '/watch',
+                    '/listen', '/prime', '/premium', '/photo', '/photos', '/cartoon', '/select/']
+
+        filtered_news_url = [s for s in filtered_news_url_re if not any(e in s for e in elements)]
 
         # print(filtered_news_url)
 
@@ -111,7 +113,7 @@ class NewsSpider(scrapy.Spider):
                     # This is a list comprehension to extract the author URL
                     for text in response.css('a::attr(href)').getall()
                     if re.compile(
-                    rf'^({self.base_url}|/)((authors|author|etreporter)|[a-zA-Z0-9\-/]+/(authors|author|etreporter))/[a-zA-Z0-9\-/]+').match(
+                    rf'^({self.base_url}|/)((authors|author|agency)|[a-zA-Z0-9\-./]+/(authors|author))/[a-zA-Z0-9\-/]+').match(
                     text.strip())
                 ),
                 # If the first code in next function gives null as output than next code will run
@@ -124,6 +126,7 @@ class NewsSpider(scrapy.Spider):
                        response.xpath('//*[contains(@class, "author-name")]/text()').get() or
                        response.xpath('//*[contains(@class, "brand-detial-main")]//span/text()').get() or
                        response.xpath('//*[contains(@class, "publisher")]/text()').get() or
+                       response.xpath('//span[@class="byline__names"]/text()').get() or
                        response.xpath('//span[@class="ag"]/text()').get() or "").strip() or "Not Available"
             )
 
@@ -131,7 +134,8 @@ class NewsSpider(scrapy.Spider):
             if "https://" in author_link or "Https://":
 
                 # If 'author_link' is a URL than extract the author name from it using following code
-                author_name = (author_link.strip("/").split("/")[-1].replace("-", " "))
+                author_name = " ".join(
+                    zl for zl in (author_link.strip("/").split("/")[-1].replace("-", " ")).split(" ") if zl.isalpha())
 
                 # If 'author_link' is a URL than just save it as author url
                 author_url = author_link
@@ -146,12 +150,19 @@ class NewsSpider(scrapy.Spider):
             # store author name
             item['author_name'] = author_name.title()
 
+            final_autor_url_check = [author_url_response for author_url_response in response.css('a::attr(href)').getall() if ("-".join(author_name.split(" "))) in author_url_response]
+
             # store author URL
-            item['author_url'] = author_url
+            item['author_url'] = author_url if author_url != author_name else final_autor_url_check[0] if final_autor_url_check else 'Not Available'
 
             # Clean and concatenate article content and store it
-            paragraphs = response.xpath(
-                "//p//text() | //article//div//text() | //article//div//h2//text() | //article//div//h3//text() | //article//div//h4//text() | //article//div//h5//text() | //article//div//h6//text() | //article//h2//text() | //article//h3//text() | //article//h4//text() | //article//h5//text() | //article//h6//text()").getall()
+            paragraphs = (response.xpath("//p//text()").getall() or
+                          response.xpath(
+                              "//article//div//h2//text() | //article//div//h3//text() | //article//div//h4//text() | //article//div//h5//text() | //article//div//h6//text()").getall() or
+                          response.xpath(
+                              "//article//h2//text() | //article//h3//text() | //article//h4//text() | //article//h5//text() | //article//h6//text()").getall() or
+                          response.xpath("//article//div//text()").getall()
+                          )
             item['article_content'] = re.sub(r'\s+', ' ', ' '.join(paragraphs)).strip()
 
             yield item

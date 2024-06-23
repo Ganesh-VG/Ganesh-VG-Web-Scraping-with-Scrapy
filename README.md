@@ -67,6 +67,12 @@ Web-Scraping-with-Scrapy/
 
 3. The scraped data will be saved in JSON files in the `JSON_files` directory, categorized by the website name.
 
+4. If you want to run spider on single url:
+
+    ```sh
+    scrapy crawl getnews -a url=<Input URL>  
+    ```
+
 ## Example
 
 An example of a URL in `config.txt`:
