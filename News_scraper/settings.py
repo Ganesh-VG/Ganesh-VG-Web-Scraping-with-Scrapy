@@ -49,7 +49,7 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
+ # DOWNLOADER_MIDDLEWARES = {
 #    "News_scraper.middlewares.NewsScraperDownloaderMiddleware": 543,
 # }
 
@@ -65,18 +65,6 @@ ITEM_PIPELINES = {
    "News_scraper.pipelines.NewsScraperPipeline": 300,
 }
 
-# Enable and configure the AutoThrottle extension (disabled by default)
-# See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-# AUTOTHROTTLE_ENABLED = True
-# The initial download delay
-# AUTOTHROTTLE_START_DELAY = 5
-# The maximum download delay to be set in case of high latencies
-# AUTOTHROTTLE_MAX_DELAY = 60
-# The average number of requests Scrapy should be sending in parallel to
-# each remote server
-# AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
-# Enable showing throttling stats for every response received:
-# AUTOTHROTTLE_DEBUG = False
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
@@ -109,10 +97,19 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 # Enable AutoThrottle
+# Enable and configure the AutoThrottle extension (disabled by default)
 AUTOTHROTTLE_ENABLED = True
+
+# The initial download delay
 AUTOTHROTTLE_START_DELAY = 5
+
+# The maximum download delay to be set in case of high latencies
 AUTOTHROTTLE_MAX_DELAY = 60
+
+# The average number of requests Scrapy should be sending in parallel to
 AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
+
+# Enable showing throttling stats for every response received:
 AUTOTHROTTLE_DEBUG = False
 
 # Increase the download timeout

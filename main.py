@@ -1,5 +1,4 @@
 import os
-import time
 import asyncio
 from twisted.internet import asyncioreactor
 
@@ -11,7 +10,7 @@ if os.name == 'nt':
 # Install the asyncio reactor
 asyncioreactor.install()
 
-from twisted.internet import reactor, defer
+from twisted.internet import reactor
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
@@ -22,17 +21,25 @@ def main():
     settings = get_project_settings()
     runner = CrawlerRunner(settings=settings)
 
-    @defer.inlineCallbacks
-    def crawl():
+    async def run_spider(url):
+        await runner.crawl(NewsSpider, url=url)
+
+    async def main_crawl():
         with open('config.txt', 'r') as file:
             urls = [line.strip() for line in file.readlines()]
-        for url in urls:
-            time.sleep(60)
-            yield runner.crawl(NewsSpider, url=url)
-            time.sleep(10)
+
+        max_concurrent_tasks = 5  # Start with 3, you can increase to 5 after testing
+        semaphore = asyncio.Semaphore(max_concurrent_tasks)
+
+        async def sem_run_spider(url):
+            async with semaphore:
+                await run_spider(url)
+
+        tasks = [sem_run_spider(url) for url in urls]
+        await asyncio.gather(*tasks)
         reactor.stop()
 
-    crawl()
+    reactor.callLater(0, lambda: asyncio.ensure_future(main_crawl()))
     reactor.run()
 
 if __name__ == '__main__':
