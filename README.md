@@ -80,13 +80,16 @@ Web-Scraping-with-Scrapy/
 An example of a URL in `config.txt`:
 
 https://www.livemint.com/
+
 https://economictimes.indiatimes.com/
 
 After running the scraper, JSON files will be created for each website:
 
+```sh
 JSON_files/
 ├── livemint_articles.json
 ├── economictimes_articles.json
+```
 
 ## Contributing
 
