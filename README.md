@@ -47,6 +47,7 @@ News Scraper is a web scraping project built using Scrapy to extract articles fr
 
 ### Directory Structure
 
+```sh
 Web-Scraping-with-Scrapy/
 ├── config.txt
 ├── main.py
@@ -54,6 +55,7 @@ Web-Scraping-with-Scrapy/
 ├── pipelines.py
 ├── requirements.txt
 └── JSON_files/
+```
 
 ## Usage
 
